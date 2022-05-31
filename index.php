@@ -145,7 +145,7 @@ add_action( "init",function(){
         "labels"      => $labels,
         "description" => "Matrimony Fields custom post type.",
         "menu_icon"      => "dashicons-id-alt",    
-        "supports"   => array( "title"),
+        "supports"   => array( "title","page-attributes"),
         "capability_type" => "page",
         "publicly_queryable"  => false,
     );
@@ -165,14 +165,14 @@ add_action( "init",function(){
     );
     // Set Options for matrimony_option
     $args = array(    
-        "labels"      => $labels,
-        "hierarchical"               => false,
-        "public"                     => false,
-        "show_ui"                    => true,
-        "show_admin_column"          => true,
-        "show_in_nav_menus"          => true,
-        "show_tagcloud"              => true,
-        "show_in_rest"               => true,
+        "labels"             => $labels,
+        "hierarchical"       => false,
+        "public"             => false,
+        "show_ui"            => false,
+        "show_admin_column"  => true,
+        "show_in_nav_menus"  => false,
+        "show_tagcloud"      => false,
+        "show_in_rest"       => false,
     );
     register_taxonomy("matrimony_option", array("matrimony_field"), $args);
     
