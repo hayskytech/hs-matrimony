@@ -90,13 +90,13 @@ function home_carousel(){
 add_shortcode('home_carousel','home_carousel');
 
 function matrimony_admin_menu(){
-    add_menu_page('HS Matrimony','HS Matrimony','manage_options','disable_captcha_admin','matrimony_check_by_id','dashicons-id-alt','2');
-    add_submenu_page('disable_captcha_admin','Settings','Settings','manage_options','matrimony_fields','matrimony_fields');
+    add_submenu_page('edit.php?post_type=matrimony_field','View by ID','View by ID','manage_options','disable_captcha_admin','matrimony_check_by_id');
+    add_submenu_page('edit.php?post_type=matrimony_field','Settings','Settings','manage_options','matrimony_settings','matrimony_settings');
 }
 add_action('admin_menu' , 'matrimony_admin_menu');
 
 function matrimony_check_by_id(){ include 'check_by_id.php'; }
-function matrimony_fields(){ include 'profile_fields.php'; }
+function matrimony_settings(){ include 'settings.php'; }
 
 add_shortcode('view_profile',function(){ include 'view_profile.php'; });
 add_shortcode('likers',function(){ 
