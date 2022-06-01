@@ -26,6 +26,17 @@ function my_random_user_query( $class ) {
     return $class;
 }
 
+function cc_wpse_278096_disable_admin_bar() {
+   if (current_user_can('administrator') ) {
+     // user can view admin bar
+     show_admin_bar(true); // this line isn't essentially needed by default...
+   } else {
+     // hide admin bar
+     show_admin_bar(false);
+   }
+}
+add_action('after_setup_theme', 'cc_wpse_278096_disable_admin_bar');
+
 add_action( 'admin_init', 'restrict_wpadmin_access' );
 if ( ! function_exists( 'restrict_wpadmin_access' ) ) {
     function restrict_wpadmin_access() {
