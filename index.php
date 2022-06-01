@@ -26,24 +26,20 @@ function my_random_user_query( $class ) {
     return $class;
 }
 
-
-function add_roles_on_plugin_activation() {
-    global $wpdb;
-    add_role( 'hs_matrimony_user', 'HS Matrimony User', 
-        array( 
-            'read' => true, 
-            'level_0' => true , 
-        )
-    );
-}
-register_activation_hook( __FILE__, 'add_roles_on_plugin_activation' );
-
-
-add_action('admin_init', 'allow_hs_matrimony_user_uploads');
-function allow_hs_matrimony_user_uploads() {
-    $hs_matrimony_user = get_role('hs_matrimony_user');
-    $hs_matrimony_user->add_cap('upload_files');
-}
+add_action( 'admin_init', 'restrict_wpadmin_access' );
+if ( ! function_exists( 'restrict_wpadmin_access' ) ) {
+    function restrict_wpadmin_access() {
+        if ( wp_doing_ajax() || current_user_can( 'administrator' ) ) {
+            return;
+        } else {
+            header( 'Refresh: 2; ' . esc_url( home_url() ) );
+            $args = array(
+                'back_link' => true,
+            );
+            wp_die( 'Restricted access.', 'Error', $args );
+        };
+    };
+};
 
 add_filter( 'ajax_query_attachments_args',
 'wpb_show_current_user_attachments' );
@@ -59,14 +55,13 @@ return $query;
 }
 
 add_action( 'admin_init', function() {
-    $author = get_role( 'hs_matrimony_user' );
+    $author = get_role( 'subscriber' );
 
     if ( ! $author->has_cap( 'delete_posts' ) ) {
         $author->add_cap( 'delete_posts' );
     }
 });
 
-include (dirname(__FILE__).'/user_extra_fields.php');
 include (dirname(__FILE__).'/add_filter_to_wp_users.php');
 
 function display_profiles(){
@@ -145,7 +140,7 @@ add_action( "init",function(){
         "labels"      => $labels,
         "description" => "Matrimony Fields custom post type.",
         "menu_icon"      => "dashicons-id-alt",    
-        "supports"   => array( "title","page-attributes"),
+        "supports"   => array( "title"),
         "capability_type" => "page",
         "publicly_queryable"  => false,
     );
@@ -168,7 +163,7 @@ add_action( "init",function(){
         "labels"             => $labels,
         "hierarchical"       => false,
         "public"             => false,
-        "show_ui"            => false,
+        "show_ui"            => true,
         "show_admin_column"  => true,
         "show_in_nav_menus"  => false,
         "show_tagcloud"      => false,
@@ -177,4 +172,45 @@ add_action( "init",function(){
     register_taxonomy("matrimony_option", array("matrimony_field"), $args);
     
 });
-?>
+
+add_action( "add_meta_boxes",function(){
+    add_meta_box(
+        "diwp-post-read-timer",
+        "Matrimony Field Type", 
+// Creates Metabox Callback Function
+function(){
+    global $post;
+    $new_slug = sanitize_title( $post->post_title );
+    $meta = get_post_meta($post->ID);
+    wp_update_post(array ('ID'=> $post->ID,'post_name' => $new_slug));
+    update_post_meta($post->ID, "matrimony_field_type", $meta["matrimony_field_type"][0]);
+    $data["matrimony_field_type"] = $meta["matrimony_field_type"][0];
+    ?>
+    <table>
+        <tr>
+            <td>Matrimony Field Type</td>
+            <td>
+                <select name="matrimony_field_type" id="matrimony_field_type">
+                    <option>text</option>
+                    <option>select</option>
+                    <option>textarea</option>
+                    <option>image</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        document.getElementById('matrimony_field_type').value='<?php echo $data["matrimony_field_type"]; ?>';
+    </script>
+    <?php
+},
+        "matrimony_field",
+        "side",
+        "high"
+    );
+});
+
+add_action( "save_post",function(){
+    global $post;
+    update_post_meta($post->ID, "matrimony_field_type", $_POST["matrimony_field_type"]);
+});
