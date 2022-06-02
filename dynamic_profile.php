@@ -1,4 +1,5 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
 <style type="text/css">
 	.menu-toggle, button{
 		color: black;
@@ -31,7 +32,7 @@ if ($user_id) {
 	$logout_redirect = get_permalink();
 	echo 'You are already logged in. <a href="'.wp_logout_url( $logout_redirect ).'"><b>Logout</b></a>';
 	?>
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" class="ui form">
 	<table class="ui collapsing striped table">
 		<tr>
 			<td>Name</td>
@@ -54,7 +55,7 @@ if ($user_id) {
 					$options[$term->term_id] = $term->name;
 				}
 				ksort($options);
-				echo '<select name="'.$post->post_name.'">';
+				echo '<select name="'.$post->post_name.'" class="ui dropdown">';
 				foreach($options as $option){
 					echo '<option>'.$option.'</option>';
 				}
@@ -64,7 +65,7 @@ if ($user_id) {
 				<div class="image-preview-wrapper">
 					<img src="" style="max-width:250px" id="img_<?php echo $post->post_name; ?>">
 				</div>
-				<input type="button" class="ui blue mini button" value="Choose Media" onclick="choose_media(this)" />
+				<input type="button" class="ui blue button" value="Choose Media" onclick="choose_media(this)" />
 				<input type="hidden" name="<?php echo $post->post_name; ?>">
 				<?php
 			} else {
@@ -75,7 +76,7 @@ if ($user_id) {
 		?>
 		<tr>
 			<td></td>
-			<td><input type="submit" name="submit" value="Save"></td>
+			<td><input type="submit" name="submit" class="ui green button" value="Save"></td>
 		</tr>
 	</table>
 </form>
@@ -107,6 +108,7 @@ if ( window.history.replaceState ) {
 		}
 	endwhile;
 	?>
+$('.ui.dropdown').dropdown();
 </script>
 <?php
 wp_enqueue_media();
