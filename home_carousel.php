@@ -6,9 +6,28 @@ $gender[0] = 'Female';
 $gender[1] = 'Male';
 $father[0] = 'D/o: ';
 $father[1] = 'S/o: ';
+$args = array(
+  'post_type'   => 'matrimony_field',
+  'post_status' => 'publish',
+  'posts_per_page' => -1,
+  'orderby' => 'date',
+  'order' => 'ASC',
+  'meta_query' => array(
+    array(
+      'key' => 'public_visibility',
+      'value'   => array('yes'),
+      'compare' => 'IN'
+    ),
+    array(
+      'key' => 'matrimony_field_type',
+      'value'   => array('image'),
+      'compare' => 'NOT IN'
+    )
+  )
+);
+$loop = new WP_Query( $args );
 for($m=0; $m < 2; $m++) {
     $args = array(
-        'role'         => 'hs_matrimony_user',
         'meta_key'     => 'gender',
         'meta_value'   => $gender[$m],
         'orderby' => 'rand',
@@ -22,7 +41,8 @@ for($m=0; $m < 2; $m++) {
         $k = 0;
         foreach ($blogusers as $user) {
             $user_meta = get_user_meta($user->ID);
-            $img_id = $user_meta['photo'][0];
+            $img_id = $user_meta['profile-photo'][0];
+            $href_url = wp_get_attachment_image_src($user_meta['profile-photo'][0],'large')[0];
             if(!$img_id){
                 continue;
             }
@@ -38,16 +58,14 @@ for($m=0; $m < 2; $m++) {
                 <?php echo '<img src="'.$img_url.'">'; ?>
             </div>
             <div class="content">
-                <?php echo '<big style="color:blue"><b>'.$user->display_name.'</b></big>'; ?>
+                <?php echo '<big style="color:blue"><b>ID:'.$user->ID.' - '.$user->display_name.'</b></big>'; ?>
                 <div class="description">
-                    <?php echo '
-                    Caste: '.$user_meta['religion'][0].'
-                    <br><i class="handshake outline icon"></i>Job: '.$user_meta['job'][0].'
-                    <br><i class="rupee sign icon"></i>Salary: '.$user_meta['salary'][0].'
-                    <br><i class="birthday cake icon"></i>DOB: '.$user_meta['date_of_birth'][0].'
-                    <br><i class="address book outline icon"></i>'.$father[$m].$user_meta['father'][0].'
-                    <br><big style="color:blue"><b>ID: VSB'.$user->ID.'</b></big>';
-                    ?>                
+                    <?php
+                    while ( $loop->have_posts() ) : $loop->the_post();
+                        global $post;
+                        echo $post->post_title.': '.get_user_meta($user->ID,$post->post_name,true).'<br>';
+                    endwhile;
+                    ?>
                 </div>
             </div>
         </div>
