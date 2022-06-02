@@ -10,7 +10,9 @@ License: GPLv2 or later
 Text Domain: hs-matrimony
 */
 error_reporting(E_ERROR | E_PARSE);
-
+add_action('wp_head',function(){
+wp_enqueue_style( 'semantic-css', 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.css', false, '2.3.3', 'all' );
+});
 add_filter('manage_users_columns','remove_users_columns');
 function remove_users_columns($column_headers) {
     // if (current_user_can('moderator')) {
@@ -52,8 +54,7 @@ if ( ! function_exists( 'restrict_wpadmin_access' ) ) {
     };
 };
 
-add_filter( 'ajax_query_attachments_args',
-'wpb_show_current_user_attachments' );
+add_filter( 'ajax_query_attachments_args','wpb_show_current_user_attachments' );
 
 function wpb_show_current_user_attachments( $query ) {
 $user_id = get_current_user_id();
@@ -66,10 +67,13 @@ return $query;
 }
 
 add_action( 'admin_init', function() {
-    $author = get_role( 'subscriber' );
+    $author = get_role( 'contributor' );
 
     if ( ! $author->has_cap( 'delete_posts' ) ) {
         $author->add_cap( 'delete_posts' );
+    }
+    if ( ! $author->has_cap( 'upload_files' ) ) {
+        $author->add_cap( 'upload_files' );
     }
 });
 
@@ -195,7 +199,7 @@ function(){
     $meta = get_post_meta($post->ID);
     wp_update_post(array ('ID'=> $post->ID,'post_name' => $new_slug));
     update_post_meta($post->ID, "matrimony_field_type", $meta["matrimony_field_type"][0]);
-    $data["matrimony_field_type"] = $meta["matrimony_field_type"][0];
+    update_post_meta($post->ID, "public_visibility", $meta["public_visibility"][0]);
     ?>
     <table>
         <tr>
@@ -209,9 +213,27 @@ function(){
                 </select>
             </td>
         </tr>
+        <tr>
+            <td>Public Visibility</td>
+            <td>
+                <select name="public_visibility" id="public_visibility">
+                    <option>yes</option>
+                    <option>no</option>
+                </select>
+            </td>
+        </tr>
     </table>
     <script type="text/javascript">
-        document.getElementById('matrimony_field_type').value='<?php echo $data["matrimony_field_type"]; ?>';
+        <?php
+        if ($meta["matrimony_field_type"][0]) {
+            echo 'document.getElementById("matrimony_field_type").value="'.$meta["matrimony_field_type"][0].'";
+';
+        }
+        if ($meta["public_visibility"][0]) {
+            echo 'document.getElementById("public_visibility").value="'.$meta["public_visibility"][0].'";
+';
+        }
+        ?>
     </script>
     <?php
 },
@@ -224,4 +246,5 @@ function(){
 add_action( "save_post",function(){
     global $post;
     update_post_meta($post->ID, "matrimony_field_type", $_POST["matrimony_field_type"]);
+    update_post_meta($post->ID, "public_visibility", $_POST["public_visibility"]);
 });
