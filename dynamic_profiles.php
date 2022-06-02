@@ -12,7 +12,27 @@
 $wpdb;
 $user_id = get_current_user_id();
 $gender = get_user_meta($user_id, 'gender', true);
-if (current_user_can('hs_matrimony_user') || current_user_can('administrator')) {
+$args = array(
+  'post_type'   => 'matrimony_field',
+  'post_status' => 'publish',
+  'posts_per_page' => -1,
+  'orderby' => 'date',
+  'order' => 'ASC',
+  'meta_query' => array(
+    array(
+      'key' => 'public_visibility',
+      'value'   => array('yes'),
+      'compare' => 'IN'
+    ),
+    array(
+      'key' => 'matrimony_field_type',
+      'value'   => array('image'),
+      'compare' => 'NOT IN'
+    )
+  )
+);
+$loop = new WP_Query( $args );
+if (1) {
   if($gender == 'Male'){
     $this_one = 'Female';
   } else {
@@ -22,17 +42,15 @@ if (current_user_can('hs_matrimony_user') || current_user_can('administrator')) 
     $likers = get_user_meta($user_id,'likers',true);
     $likers = json_decode($likers);
     $args = array(
-      'role'         => 'hs_matrimony_user',
       'include'     =>  $likers
     );
   } else {
     $args = array(
-      'role'         => 'hs_matrimony_user',
       'meta_key'     => 'gender',
       'meta_value'   => $this_one
     );
   }
-    $blogusers = get_users( $args );
+  $blogusers = get_users( $args );
 }
 ?>
 <table class="ui celled sortable table">
@@ -43,7 +61,7 @@ if (current_user_can('hs_matrimony_user') || current_user_can('administrator')) 
     </tr>
   </thead>
 <?php
-if (current_user_can('hs_matrimony_user') || current_user_can('administrator')) {
+if (1) {
   $my_likes = (array) json_decode(get_user_meta($user_id,'interested',true));
   foreach ($blogusers as $user) {
     $i++;
@@ -57,36 +75,26 @@ if (current_user_can('hs_matrimony_user') || current_user_can('administrator')) 
       $color = 'grey';
       $like = 'yes';
     }
-      $user_meta = get_user_meta($user->ID);
-      $img_url = wp_get_attachment_image_src($user_meta['photo'][0],'medium')[0];
-      $href_url = wp_get_attachment_image_src($user_meta['photo'][0],'large')[0];
-      ?>
-      <tr <?php echo $bg; ?>>
-        <td style="text-align: center;">
-        <a href="<?php echo $href_url; ?>" target="_blank">
-          <img src="<?php echo $img_url; ?>" width="250">
-        </a>
+    $user_meta = get_user_meta($user->ID);
+    $img_url = wp_get_attachment_image_src($user_meta['profile-photo'][0],'medium')[0];
+    $href_url = wp_get_attachment_image_src($user_meta['profile-photo'][0],'large')[0];
+    ?>
+    <tr <?php echo $bg; ?>>
+      <td style="text-align: center;">
+      <a href="<?php echo $href_url; ?>" target="_blank">
+        <img src="<?php echo $img_url; ?>" width="250">
+      </a>
+      <b class="user_id">ID: <?php echo $user->ID; ?></b> : <?php echo $user->display_name; ?>
       </td>
-        <?php echo '<td><div style="font-size:120%; line-height: 150%;">
-        <b class="user_id">ID: '.$user->ID.'</b><br>
-        '.$user->display_name.'
-        <br>Caste: '.$user_meta['religion'][0].'
-        <br><i class="handshake outline icon"></i>Job: '.$user_meta['job'][0].'
-        <br><i class="rupee sign icon"></i>Salary: '.$user_meta['salary'][0].'
-        <br><i class="birthday cake icon"></i>DOB: '.$user_meta['date_of_birth'][0].'
-        <br><i class="arrows alternate vertical icon"></i>Height: '.$user_meta['height'][0].'
-        <br><i class="address book outline"></i>
-            <span style="text-decoration:underline">Father name:</span> '.$user_meta['father_name'][0].'
-        <br>Place: '.$user_meta['town'][0].'
-        </div>
-      <div class="int_btn">';
-      if ($bg) {
-        echo '<b>Match found</b><br>';
-      }
+        <?php echo '<td>';
+        while ( $loop->have_posts() ) : $loop->the_post();
+          global $post;
+          echo $post->post_title.': '.get_user_meta($user->ID,$post->post_name,true).'<br>';
+        endwhile;
       /*
       echo '
         <b>
-        <a href="/view?ID=VSB'.$user->ID.'&like='.$like.'" target="blank"><button class="ui '.$color.' button" onclick="green(this)">
+        <a href="/view?ID='.$user->ID.'&like='.$like.'" target="blank"><button class="ui '.$color.' button" onclick="green(this)">
           <i class="ui heart white icon"></i>Like</button>
         </a>
         </b>';
