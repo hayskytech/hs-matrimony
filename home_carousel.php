@@ -9,6 +9,21 @@ $father[1] = 'S/o: ';
 $args = array(
   'post_type'   => 'matrimony_field',
   'post_status' => 'publish',
+  'posts_per_page' => 1,
+  'orderby' => 'date',
+  'order' => 'ASC',
+  'meta_query' => array(
+    array(
+      'key' => 'matrimony_field_type',
+      'value'   => array('image'),
+      'compare' => 'IN'
+    ),
+  )
+);
+$profile_pic = get_posts($args)[0]->post_name;
+$args = array(
+  'post_type'   => 'matrimony_field',
+  'post_status' => 'publish',
   'posts_per_page' => -1,
   'orderby' => 'date',
   'order' => 'ASC',
@@ -41,8 +56,8 @@ for($m=0; $m < 2; $m++) {
         $k = 0;
         foreach ($blogusers as $user) {
             $user_meta = get_user_meta($user->ID);
-            $img_id = $user_meta['profile-photo'][0];
-            $href_url = wp_get_attachment_image_src($user_meta['profile-photo'][0],'large')[0];
+            $img_id = $user_meta[$profile_pic][0];
+            $href_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'large')[0];
             if(!$img_id){
                 continue;
             }
@@ -52,7 +67,6 @@ for($m=0; $m < 2; $m++) {
                 break;
             } 
             ?>
-          
         <div class="card">
             <div class="image">
                 <?php echo '<img src="'.$img_url.'">'; ?>

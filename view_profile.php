@@ -14,7 +14,7 @@ global $wpdb;
 </form>
 <?php
 $user_id = get_current_user_id();
-if (current_user_can('hs_matrimony_user') || 1) {
+if (1) {
 	$user_meta = get_user_meta($ID);
 	$our_meta = get_user_meta($user_id);
 	if ($user_meta) {

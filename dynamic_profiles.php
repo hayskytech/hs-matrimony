@@ -15,6 +15,21 @@ $gender = get_user_meta($user_id, 'gender', true);
 $args = array(
   'post_type'   => 'matrimony_field',
   'post_status' => 'publish',
+  'posts_per_page' => 1,
+  'orderby' => 'date',
+  'order' => 'ASC',
+  'meta_query' => array(
+    array(
+      'key' => 'matrimony_field_type',
+      'value'   => array('image'),
+      'compare' => 'IN'
+    ),
+  )
+);
+$profile_pic = get_posts($args)[0]->post_name;
+$args = array(
+  'post_type'   => 'matrimony_field',
+  'post_status' => 'publish',
   'posts_per_page' => -1,
   'orderby' => 'date',
   'order' => 'ASC',
@@ -76,8 +91,8 @@ if (1) {
       $like = 'yes';
     }
     $user_meta = get_user_meta($user->ID);
-    $img_url = wp_get_attachment_image_src($user_meta['profile-photo'][0],'medium')[0];
-    $href_url = wp_get_attachment_image_src($user_meta['profile-photo'][0],'large')[0];
+    $img_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'medium')[0];
+    $href_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'large')[0];
     ?>
     <tr <?php echo $bg; ?>>
       <td style="text-align: center;">
