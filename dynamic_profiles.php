@@ -68,15 +68,8 @@ if (1) {
   $blogusers = get_users( $args );
 }
 ?>
-<table class="ui celled sortable table">
-  <thead>
-    <tr>
-      <th style="width:250px">Photo</th>
-      <th>Name & Contact</th>
-    </tr>
-  </thead>
-<?php
-if (1) {
+<div class="ui four doubling stackable cards">
+  <?php
   $my_likes = (array) json_decode(get_user_meta($user_id,'interested',true));
   foreach ($blogusers as $user) {
     $i++;
@@ -94,18 +87,35 @@ if (1) {
     $img_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'medium')[0];
     $href_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'large')[0];
     ?>
-    <tr <?php echo $bg; ?>>
-      <td style="text-align: center;">
+    <div class="card">
       <a href="<?php echo $href_url; ?>" target="_blank">
-        <img src="<?php echo $img_url; ?>" width="250">
+        <div style="background-image: url('<?php echo $img_url; ?>');background-size: cover;height: 300px;background-position: center;background-repeat: no-repeat;"></div>
       </a>
-      <b class="user_id">ID: <?php echo $user->ID; ?></b> : <?php echo $user->display_name; ?>
-      </td>
-        <?php echo '<td>';
-        while ( $loop->have_posts() ) : $loop->the_post();
-          global $post;
-          echo $post->post_title.': '.get_user_meta($user->ID,$post->post_name,true).'<br>';
-        endwhile;
+      <div class="content">
+        <a class="header" style="text-decoration: none;">
+          <b class="user_id"><?php echo $user->display_name; ?></b>
+        </a>
+        <div class="meta" style="color:black;">
+          <?php 
+          $birth = $user_meta['date_of_birth'][0];
+          $today = date("d-m-Y");
+          $age = date_diff(date_create($birth), date_create($today));
+          echo 'DoB: '.date('d-M-Y',strtotime($birth)).' (Age: '.$age->format("%y").'yrs)'; ?>
+        </div>
+        <div class="description">
+          <?php
+          while ( $loop->have_posts() ) : $loop->the_post();
+            global $post;
+            echo $post->post_title.': '.stripslashes(get_user_meta($user->ID,$post->post_name,true)).'<br>';
+          endwhile;
+          ?>
+        </div>
+      </div>
+      <div class="extra content" style="color:blue; ">
+        <b><?php echo 'ID: '.$user->ID; ?></b>
+      </div>
+    </div>
+    <?php
       /*
       echo '
         <b>
@@ -114,13 +124,12 @@ if (1) {
         </a>
         </b>';
       */
-      echo '</div>
-      </td>
-    </tr>';
   }
-}
+  ?>
+</div>
+<?php
 if (!$blogusers) {
-   echo '<tr><td colspan="4"><h2 style="color:red; text-align:center">No users found!!!</h2></td></tr>';
+   echo '<h2 style="color:red; text-align:center">No users found!!!</h2>';
  } 
  ?>
 </table>

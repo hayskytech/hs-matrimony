@@ -48,42 +48,57 @@ for($m=0; $m < 2; $m++) {
         'orderby' => 'rand',
         'number'  => 50
     );
-    $blogusers = get_users( $args );
     echo '<h2>'.$gender[$m].' Profiles: </h2>';
     ?>
     <div class="ui four doubling stackable cards">
-        <?php
-        $k = 0;
-        foreach ($blogusers as $user) {
-            $user_meta = get_user_meta($user->ID);
-            $img_id = $user_meta[$profile_pic][0];
-            $href_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'large')[0];
-            if(!$img_id){
-                continue;
-            }
-            $img_url = wp_get_attachment_image_src($img_id,'medium')[0];
-            $k++;
-            if ($k>12) {
-                break;
-            } 
-            ?>
-        <div class="card">
-            <div class="image">
-                <?php echo '<img src="'.$img_url.'">'; ?>
-            </div>
+      <?php
+      $k = 0;
+      $profiles = get_users( $args );
+      foreach ($profiles as $user) {
+          $user_meta = get_user_meta($user->ID);
+          if ($profile_pic) {
+              $img_id = $user_meta[$profile_pic][0];
+              $href_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'large')[0];
+              if(!$img_id){
+                $img_url = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?s=300&d=mp';
+              } else {
+                $img_url = wp_get_attachment_image_src($img_id,'medium')[0];
+              }
+          }
+          $k++;
+          if ($k>12) {
+              break;
+          } 
+          ?>
+          <div class="card">
+            <a href="<?php echo $href_url; ?>" target="_blank">
+              <div style="background-image: url('<?php echo $img_url; ?>');background-size: cover;height: 300px;background-position: center;background-repeat: no-repeat;"></div>
+            </a>
             <div class="content">
-                <?php echo '<big style="color:blue"><b>ID:'.$user->ID.' - '.$user->display_name.'</b></big>'; ?>
-                <div class="description">
-                    <?php
-                    while ( $loop->have_posts() ) : $loop->the_post();
-                        global $post;
-                        echo $post->post_title.': '.get_user_meta($user->ID,$post->post_name,true).'<br>';
-                    endwhile;
-                    ?>
-                </div>
+              <a class="header" style="text-decoration: none;">
+                <b class="user_id"><?php echo $user->display_name; ?></b>
+              </a>
+              <div class="meta" style="color:black;">
+                  <?php 
+                  $birth = $user_meta['date_of_birth'][0];
+                  $today = date("d-m-Y");
+                  $age = date_diff(date_create($birth), date_create($today));
+                  echo 'DoB: '.date('d-M-Y',strtotime($birth)).' (Age: '.$age->format("%y").'yrs)'; ?>
+              </div>
+              <div class="description">
+                <?php
+                while ( $loop->have_posts() ) : $loop->the_post();
+                  global $post;
+                  echo $post->post_title.': '.stripslashes(get_user_meta($user->ID,$post->post_name,true)).'<br>';
+                endwhile;
+                ?>
+              </div>
             </div>
-        </div>
-        <?php } ?>
+            <div class="extra content" style="color:blue; ">
+              <b><?php echo 'ID: '.$user->ID; ?></b>
+            </div>
+          </div>
+      <?php } ?>
     </div>
     <hr>
     <?php

@@ -1,14 +1,14 @@
 <?php
-/*
-Plugin Name: HS Matrimony
-Plugin URI: https://www.haysky.com/
-Description: Matrimony plugin by Haysky. This plugin is originally made for BharatAlliance.com
-Version: 1.0
-Author: Sufyan
-Author URI: https://www.sufyan.in/
-License: GPLv2 or later
-Text Domain: hs-matrimony
-*/
+/**
+ * Plugin Name: HS Matrimony
+ * Plugin URI: https://haysky.com/
+ * Description: Matrimony plugin by Haysky. This plugin is originally made for BharatAlliance.com
+ * Version: 1.0
+ * Author: Haysky
+ * Author URI: https://haysky.com/
+ * License: GPLv2 or later
+ */
+add_role('agent','Agent');
 error_reporting(E_ERROR | E_PARSE);
 add_action('wp_head',function(){
 wp_enqueue_style( 'semantic-css', 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.css', false, '2.3.3', 'all' );
@@ -20,6 +20,8 @@ function remove_users_columns($column_headers) {
     // }
     return $column_headers;
 }
+
+include 'user_extra_fields.php';
 
 add_action( 'pre_user_query', 'my_random_user_query' );
 function my_random_user_query( $class ) {
@@ -98,6 +100,7 @@ function home_carousel(){
     include (dirname(__FILE__).'/home_carousel.php');
 }
 add_shortcode('home_carousel','home_carousel');
+add_shortcode('agent_login',function(){ include 'agent_login.php'; });
 
 function matrimony_admin_menu(){
     add_submenu_page('edit.php?post_type=matrimony_field','View by ID','View by ID','manage_options','disable_captcha_admin','matrimony_check_by_id');
@@ -111,7 +114,7 @@ function matrimony_settings(){ include 'settings.php'; }
 add_shortcode('view_profile',function(){ include 'view_profile.php'; });
 add_shortcode('likers',function(){ 
     $likers_page = true;
-    include 'display_profiles.php'; 
+    include 'dynamic_profiles.php'; 
 });
 
 
@@ -160,6 +163,30 @@ add_action( "init",function(){
         "publicly_queryable"  => false,
     );
     register_post_type("matrimony_field", $args);
+    
+});
+
+add_action( "init",function(){
+    // Set labels for community
+    $labels = array(
+        "name" => "Communities",
+        "singular_name" => "Community",
+        "add_new"    => "Add Community",
+        "add_new_item" => "Add New Community",
+        "all_items" => "All Communities",
+    );
+    // Set Options for community
+    $args = array(    
+        "labels"      => $labels,
+        "hierarchical"               => true,
+        "public"                     => true,
+        "show_ui"                    => true,
+        "show_admin_column"          => true,
+        "show_in_nav_menus"          => true,
+        "show_tagcloud"              => true,
+        "show_in_rest"               => true,
+    );
+    register_taxonomy("community", array("matrimony_field"), $args);
     
 });
 
