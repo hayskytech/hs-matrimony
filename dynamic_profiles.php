@@ -1,17 +1,32 @@
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/table.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/icon.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/modal.min.css">
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script type="text/javascript" src="http://semantic-ui.com/javascript/library/tablesort.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/modal.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
 
 <?php
 $wpdb;
+if (isset($_GET['id']) || isset($_GET['my-profile']) || isset($_GET['add-user'])) {
+  include 'dynamic_profile.php';
+  return;
+}
 $user_id = get_current_user_id();
-$gender = get_user_meta($user_id, 'gender', true);
+if (isset($_GET['Gender'])) {
+  $this_one = $_GET['Gender'];
+} else {
+  $gender = get_user_meta($user_id, 'gender', true);
+  if($gender == 'Male'){
+    $this_one = 'Female';
+  } else {
+    $this_one = 'Male';
+  }
+}
+if (isset($_GET['number'])) {
+  $number = $_GET['number'];
+} else {
+  $number = -1;
+}
 $args = array(
   'post_type'   => 'matrimony_field',
   'post_status' => 'publish',
@@ -27,72 +42,74 @@ $args = array(
   )
 );
 $profile_pic = get_posts($args)[0]->post_name;
-$args = array(
-  'post_type'   => 'matrimony_field',
-  'post_status' => 'publish',
-  'posts_per_page' => -1,
-  'orderby' => 'date',
-  'order' => 'ASC',
-  'meta_query' => array(
-    array(
-      'key' => 'public_visibility',
-      'value'   => array('yes'),
-      'compare' => 'IN'
-    ),
-    array(
-      'key' => 'matrimony_field_type',
-      'value'   => array('image'),
-      'compare' => 'NOT IN'
-    )
+$args['posts_per_page'] = -1;
+$args['meta_query'] = array(
+  array(
+    'key' => 'matrimony_field_type',
+    'value'   => array('image'),
+    'compare' => 'NOT IN'
   )
 );
-$loop = new WP_Query( $args );
-if (1) {
-  if($gender == 'Male'){
-    $this_one = 'Female';
-  } else {
-    $this_one = 'Male';
-  }
-  if ($likers_page) {
-    $likers = get_user_meta($user_id,'likers',true);
-    $likers = json_decode($likers);
-    $args = array(
-      'include'     =>  $likers
-    );
-  } else {
-    $args = array(
-      'meta_key'     => 'gender',
-      'meta_value'   => $this_one
-    );
-  }
-  $blogusers = get_users( $args );
+if (!$admin && !$agent) {
+  $args['meta_query'][1] = array(
+    'key' => 'public_visibility',
+    'value'   => array('yes'),
+    'compare' => 'IN'
+  );
+}
+$fields = get_posts($args);
+if (!$user_args) {
+  $user_args = array(
+    'meta_key'     => 'gender',
+    'meta_value'   => $this_one,
+    'number'     => $number,
+    'role__not_in' => array('administrator','agent')
+  );
+}
+$blogusers = get_users( $user_args );
+if ($filter_form) {
+  ?>
+  <h1>All Profiles</h1>
+  <div>
+    <form>
+      Gender: <select name="Gender" id="gender-filter">
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+      <button>SUBMIT</button>
+      <?php
+      if (current_user_can('administrator')||current_user_can('agent')){
+        echo '<a href="'.get_permalink().'?add-user"><button type="button">Add User</button></a>';
+      } else {
+        echo '<a href="'.get_permalink().'?my-profile"><button type="button">My Profile</button></a>';
+      }
+      ?>
+    </form>
+  </div>
+  <?php
 }
 ?>
+<script type="text/javascript">
+  $('select[name=Gender]').val('<?php echo $this_one; ?>')
+</script>
 <div class="ui four doubling stackable cards">
   <?php
   $my_likes = (array) json_decode(get_user_meta($user_id,'interested',true));
   foreach ($blogusers as $user) {
-    $i++;
-    if (in_array($user->ID, $my_likes)) {
-      $color = 'green';
-      if ($likers_page) {
-        $bg = 'style="background-color:skyblue"';
-      }
-      $like = 'no';
-    } else {
-      $color = 'grey';
-      $like = 'yes';
-    }
     $user_meta = get_user_meta($user->ID);
-    $img_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'medium')[0];
-    $href_url = wp_get_attachment_image_src($user_meta[$profile_pic][0],'large')[0];
+    $img_id = $user_meta[$profile_pic][0];
+    if(!$img_id){
+      $img_url = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?s=300&d=mp';
+    } else {
+      $img_url = wp_get_attachment_image_src($img_id,'medium')[0];
+    }
     ?>
     <div class="card">
-      <a href="<?php echo $href_url; ?>" target="_blank">
-        <div style="background-image: url('<?php echo $img_url; ?>');background-size: cover;height: 300px;background-position: center;background-repeat: no-repeat;"></div>
+      <a href="<?php echo get_permalink().'?id='.$user->ID; ?>">
+        <div style="background-image: url('<?php echo $img_url; ?>');background-size: cover;height: 300px;background-position: top;background-repeat: no-repeat;"></div>
       </a>
       <div class="content">
-        <a class="header" style="text-decoration: none;">
+        <a class="header" style="text-decoration: none;" href="<?php echo get_permalink().'?id='.$user->ID; ?>">
           <b class="user_id"><?php echo $user->display_name; ?></b>
         </a>
         <div class="meta" style="color:black;">
@@ -104,10 +121,9 @@ if (1) {
         </div>
         <div class="description">
           <?php
-          while ( $loop->have_posts() ) : $loop->the_post();
-            global $post;
-            echo $post->post_title.': '.stripslashes(get_user_meta($user->ID,$post->post_name,true)).'<br>';
-          endwhile;
+          foreach ($fields as $field) {
+            echo $field->post_title.': '.stripslashes(get_user_meta($user->ID,$field->post_name,true)).'<br>';
+          }
           ?>
         </div>
       </div>
@@ -116,14 +132,6 @@ if (1) {
       </div>
     </div>
     <?php
-      /*
-      echo '
-        <b>
-        <a href="/view?ID='.$user->ID.'&like='.$like.'" target="blank"><button class="ui '.$color.' button" onclick="green(this)">
-          <i class="ui heart white icon"></i>Like</button>
-        </a>
-        </b>';
-      */
   }
   ?>
 </div>
