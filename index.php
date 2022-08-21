@@ -97,11 +97,12 @@ function display_profiles(){
   }
 }
 add_shortcode('home_carousel',function(){
-  $filter_form = false;
+  $filter_hide = true;
   $user_args = array(
     'meta_key'     => 'gender',
     'meta_value'   => 'Female',
     'number'     => 8,
+    'orderby' => 'rand',
     'role__not_in' => array('administrator','agent')
   );
   include 'dynamic_profiles.php';

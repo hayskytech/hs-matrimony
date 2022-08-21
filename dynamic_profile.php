@@ -50,6 +50,9 @@ if ($add_user){
 		) );
 		if (! is_wp_error($id)) {
 			update_user_meta( $id, 'gender', $_POST['gender']);
+			if (current_user_can('agent')) {
+				update_user_meta( $id, 'agent', get_current_user_id());
+			}
 			echo '<h3 style="color:green">User Added successfully. 
 			<br>Go Back to <a href="'.get_permalink().'">All Profiles</a>
 			<br><a href="'.get_permalink().'?id='.$id.'">View Profile</a></h3>';
@@ -250,46 +253,48 @@ if ($user_id ) {
 	wp_enqueue_media();
 	add_action( 'admin_footer', 'media_selector_print_scripts' );
 	add_action( 'wp_footer', 'media_selector_print_scripts' );
-	function media_selector_print_scripts() {
-		?>
-		<script type='text/javascript'>
-		function choose_media(x) {
-			var file_frame;
-			var wp_media_post_id = wp.media.model.settings.post.id; // Store the old id
-			var set_to_post_id = $(x).parent().find('input[type=hidden]').val(); // Set this
-			if ( file_frame ) {
-				file_frame.uploader.uploader.param( 'post_id', set_to_post_id );
-				file_frame.open();
-				return;
-			} else {
-				wp.media.model.settings.post.id = set_to_post_id;
+	if (!function_exists('media_selector_print_scripts')) {
+		function media_selector_print_scripts() {
+			?>
+			<script type='text/javascript'>
+			function choose_media(x) {
+				var file_frame;
+				var wp_media_post_id = wp.media.model.settings.post.id; // Store the old id
+				var set_to_post_id = $(x).parent().find('input[type=hidden]').val(); // Set this
+				if ( file_frame ) {
+					file_frame.uploader.uploader.param( 'post_id', set_to_post_id );
+					file_frame.open();
+					return;
+				} else {
+					wp.media.model.settings.post.id = set_to_post_id;
+				}
+				file_frame = wp.media.frames.file_frame = wp.media({
+					title: 'Select a image to upload',
+					button: {
+						text: 'Use this image',
+					},
+					multiple: false
+				});
+				// When an image is selected, run a callback.
+				file_frame.on( 'select', function() {
+					// We set multiple to false so only get one image from the uploader
+					attachment = file_frame.state().get('selection').first().toJSON();
+					// Do something with attachment.id and/or attachment.url here
+					$(x).parent().find('img').attr( 'src', attachment.url ).css( 'width', 'auto' );
+					$(x).parent().find('input[type=hidden]').val( attachment.id );
+					// Restore the main post ID
+					wp.media.model.settings.post.id = wp_media_post_id;
+				});
+					// Finally, open the modal
+					file_frame.open();
+				// Restore the main ID when the add media button is pressed
+				jQuery( 'a.add_media' ).on( 'click', function() {
+					wp.media.model.settings.post.id = wp_media_post_id;
+				});
 			}
-			file_frame = wp.media.frames.file_frame = wp.media({
-				title: 'Select a image to upload',
-				button: {
-					text: 'Use this image',
-				},
-				multiple: false
-			});
-			// When an image is selected, run a callback.
-			file_frame.on( 'select', function() {
-				// We set multiple to false so only get one image from the uploader
-				attachment = file_frame.state().get('selection').first().toJSON();
-				// Do something with attachment.id and/or attachment.url here
-				$(x).parent().find('img').attr( 'src', attachment.url ).css( 'width', 'auto' );
-				$(x).parent().find('input[type=hidden]').val( attachment.id );
-				// Restore the main post ID
-				wp.media.model.settings.post.id = wp_media_post_id;
-			});
-				// Finally, open the modal
-				file_frame.open();
-			// Restore the main ID when the add media button is pressed
-			jQuery( 'a.add_media' ).on( 'click', function() {
-				wp.media.model.settings.post.id = wp_media_post_id;
-			});
+			</script>
+			<?php
 		}
-		</script>
-		<?php
 	}
 } else if (!$add_user) {
 	echo '<h2>Register or Login with OTP:</h2>';

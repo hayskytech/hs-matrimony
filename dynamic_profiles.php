@@ -63,11 +63,17 @@ if (!$user_args) {
     'meta_key'     => 'gender',
     'meta_value'   => $this_one,
     'number'     => $number,
+    'orderby' => 'rand',
     'role__not_in' => array('administrator','agent')
   );
+  if (isset($_GET['agent'])) {
+    $user_args['meta_key'] = 'agent';
+    $user_args['meta_value'] = get_current_user_id();
+
+  }
 }
 $blogusers = get_users( $user_args );
-if ($filter_form) {
+if (!$filter_hide) {
   ?>
   <h1>All Profiles</h1>
   <div>
@@ -78,10 +84,13 @@ if ($filter_form) {
       </select>
       <button>SUBMIT</button>
       <?php
-      if (current_user_can('administrator')||current_user_can('agent')){
-        echo '<a href="'.get_permalink().'?add-user"><button type="button">Add User</button></a>';
+      if (current_user_can('administrator') || current_user_can('agent')){
+        echo ' <a href="'.get_permalink().'?add-user"><button type="button">Add User</button></a>';
       } else {
-        echo '<a href="'.get_permalink().'?my-profile"><button type="button">My Profile</button></a>';
+        echo ' <a href="'.get_permalink().'?my-profile"><button type="button">My Profile</button></a>';
+      } 
+      if (!current_user_can('administrator') && current_user_can('agent')){
+        echo ' <a href="'.get_permalink().'?agent='.get_current_user_id().'"><button type="button">My Profiles</button></a>';
       }
       ?>
     </form>
@@ -137,31 +146,11 @@ if ($filter_form) {
 </div>
 <?php
 if (!$blogusers) {
-   echo '<h2 style="color:red; text-align:center">No users found!!!</h2>';
+   echo '<h2 style="color:red; text-align:center">No '.$this_one.' users found!!!</h2>';
  } 
  ?>
-</table>
-<script type="text/javascript">
-$('table').tablesort();
-function green(x){
-  if ($(x).hasClass('grey')) {
-    $(x).addClass('green');
-    $(x).removeClass('grey');
-  } else {
-    $(x).addClass('grey');
-    $(x).removeClass('green');
-  }
-}
-</script>
 <style type="text/css">
   .user_id{
     color: blue
-  }
-  .ui.grey.button a,
-  .ui.green.button a{ 
-    color: white 
-  }
-  div.int_btn{
-    padding: 5px;
   }
 </style>
