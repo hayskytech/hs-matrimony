@@ -9,18 +9,10 @@
  * License: GPLv2 or later
  */
 // $wpdb->show_errors(); $wpdb->print_error();
-add_role('agent','Agent');
 error_reporting(E_ERROR | E_PARSE);
 // add_action('wp_head',function(){
 // wp_enqueue_style( 'semantic-css', 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.css', false, '2.3.3', 'all' );
 // });
-add_filter('manage_users_columns','remove_users_columns');
-function remove_users_columns($column_headers) {
-  // if (current_user_can('moderator')) {
-    unset($column_headers['name']);
-  // }
-  return $column_headers;
-}
 
 add_action( 'user_register', 'myplugin_registration_save', 10, 1 );
 function myplugin_registration_save( $user_id ) {
@@ -45,7 +37,7 @@ function cc_wpse_278096_disable_admin_bar() {
 }
 add_action('after_setup_theme', 'cc_wpse_278096_disable_admin_bar');
 
-add_action( 'admin_init', 'restrict_wpadmin_access' );
+// add_action( 'admin_init', 'restrict_wpadmin_access' );
 if ( ! function_exists( 'restrict_wpadmin_access' ) ) {
   function restrict_wpadmin_access() {
     if ( wp_doing_ajax() || current_user_can( 'administrator' ) ) {
@@ -73,42 +65,20 @@ return $query;
 }
 
 add_action( 'admin_init', function() {
-  $author = get_role( 'contributor' );
-
-  if ( ! $author->has_cap( 'delete_posts' ) ) {
-    $author->add_cap( 'delete_posts' );
-  }
-  if ( ! $author->has_cap( 'upload_files' ) ) {
-    $author->add_cap( 'upload_files' );
-  }
+  $subscriber = get_role( 'subscriber' );
+  $subscriber->add_cap( 'edit_posts' );
+  $subscriber->add_cap( 'delete_posts' );
+  $subscriber->add_cap( 'read' );
+  $subscriber->add_cap( 'upload_files' );
+});
+register_activation_hook( __FILE__, function() {
+    add_role( 'agent', 'Agent', array( 'delete_posts' => true, 'edit_posts' => true, 'upload_files' => true ) );
 });
 
-include (dirname(__FILE__).'/add_filter_to_wp_users.php');
 
-add_shortcode('matrimony_profile',function(){ include 'dynamic_profile.php'; });
-add_shortcode('agent_login',function(){ include 'agent_login.php'; });
+include 'add_filter_to_wp_users.php';
 
-add_shortcode('display_profiles','display_profiles'   );
-function display_profiles(){
-  if(is_user_logged_in()){
-    include (dirname(__FILE__).'/dynamic_profiles.php');
-  } else {
-    echo 'please login to continue';
-  }
-}
-add_shortcode('home_carousel',function(){
-  $filter_hide = true;
-  $user_args = array(
-    'meta_key'     => 'gender',
-    'meta_value'   => 'Female',
-    'number'     => 8,
-    'orderby' => 'rand',
-    'role__not_in' => array('administrator','agent')
-  );
-  include 'dynamic_profiles.php';
-  $user_args['meta_value'] = 'Male';
-  include 'dynamic_profiles.php';
-});
+add_shortcode('display_profiles',function(){ include 'dynamic_profiles.php'; });
 
 function matrimony_admin_menu(){
   add_submenu_page('edit.php?post_type=matrimony_field','Settings','Settings','manage_options','matrimony_settings','matrimony_settings');

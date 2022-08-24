@@ -1,5 +1,3 @@
-<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
 <style type="text/css">
 	.menu-toggle, button{
 		color: black;
@@ -47,6 +45,7 @@ if ($add_user){
 			'user_login' => $_POST['phone'],
 			'user_pass' => $_POST['password'],
 			'display_name' => '',
+			'role' => $_POST['role'],
 		) );
 		if (! is_wp_error($id)) {
 			update_user_meta( $id, 'gender', $_POST['gender']);
@@ -83,6 +82,21 @@ if ($add_user){
 					</select>
 				</td>
 			</tr>
+			<?php
+			if ($admin) {
+				?>
+				<tr>
+					<td>Role</td>
+					<td>
+						<select name="role">
+							<option value="subscriber">User</option>
+							<option value="agent">Agent</option>
+						</select>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
 			<tr>
 				<td></td>
 				<td><input type="submit" name="add_user"></td>
@@ -134,10 +148,10 @@ if ($user_id ) {
 		echo '<h3>View Profile</h3>';
 	}
 	$display_name = get_userdata( get_current_user_id() )->display_name;
-	echo 'You are already logged as '.$display_name.'. <a href="'.wp_logout_url( $logout_redirect ).'"><b>Logout</b></a>';
+	echo '<big><a href="'.wp_logout_url( $logout_redirect ).'"><b>Logout</b></a></big>';
 	?>
 	<form method="post" enctype="multipart/form-data" class="ui form matrimony">
-		<table class="ui collapsing striped table">
+		<table class="ui collapsing unstackable striped table">
 			<tr>
 				<td>Name</td>
 				<td><input type="text" name="display_name"></td>
@@ -296,9 +310,4 @@ if ($user_id ) {
 			<?php
 		}
 	}
-} else if (!$add_user) {
-	echo '<h2>Register or Login with OTP:</h2>';
-	echo do_shortcode('[df-form]');
-	echo '<h2>Register or Login with Gmail:</h2>';
-	echo do_shortcode('[nextend_social_login redirect="'.get_permalink().'"]');
 }

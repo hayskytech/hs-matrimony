@@ -1,12 +1,55 @@
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/table.min.css">
 <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/components/icon.min.css">
-
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.min.js"></script>
-
 <?php
 $wpdb;
+if (!is_user_logged_in()) {
+  ?>
+  <h3>Login with Password:</h3>
+  <form name="loginform" id="loginform" action="<?php echo site_url(); ?>/wp-login.php" method="post">
+  <table>
+    <tr>
+      <td><label for="user_login">Phone Number / Email Address</label></td>
+      <td>
+      <input type="text" name="log" autocomplete="username" class="input" value="" size="20">
+      </td>
+    </tr>
+    <tr>
+      <td><label for="user_pass">Password</label> </td>
+      <td>
+        <input type="password" name="pwd" autocomplete="current-password" class="input" value="" size="20">
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><label><input name="rememberme" type="checkbox" id="rememberme" value="forever" checked="checked"> Remember Me</label></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><input type="submit" name="wp-submit" id="wp-submit" class="button button-primary" value="Log In"></td>
+    </tr>
+  </table>
+  <input type="hidden" name="redirect_to" value="<?php echo get_permalink(); ?>">
+  </form>
+  <?php
+  echo '<h2>Register or Login with OTP:</h2>';
+  echo do_shortcode('[df-form]');
+  echo '<h2>Register or Login with Gmail:</h2>';
+  echo do_shortcode('[nextend_social_login redirect="'.get_permalink().'"]');
+  return;
+}
+if (isset($_GET['search-by-id'])){
+  ?>
+  <form class="matriform" style="padding:50px 0px">
+    <b><big>View by ID:</big></b>
+    <br><input type="number" name="id" min="1">
+    <br><button>Submit</button>
+  </form>
+  <?php
+  return;
+}
 if (isset($_GET['id']) || isset($_GET['my-profile']) || isset($_GET['add-user'])) {
   include 'dynamic_profile.php';
   return;
@@ -76,9 +119,11 @@ $blogusers = get_users( $user_args );
 if (!$filter_hide) {
   ?>
   <h1>All Profiles</h1>
+  <?php echo '<big><a href="'.wp_logout_url( $logout_redirect ).'"><b>Logout</b></a></big>'; ?>
   <div>
-    <form>
-      Gender: <select name="Gender" id="gender-filter">
+    <form class="matriform">
+      <b><big>Gender:</big></b>
+      <select name="Gender" id="gender-filter">
         <option>Male</option>
         <option>Female</option>
       </select>
@@ -152,5 +197,8 @@ if (!$blogusers) {
 <style type="text/css">
   .user_id{
     color: blue
+  }
+  form{
+    display: inline-block;
   }
 </style>
