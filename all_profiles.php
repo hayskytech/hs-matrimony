@@ -7,37 +7,73 @@
 $wpdb;
 if (!is_user_logged_in()) {
   ?>
-  <h3>Login with Password:</h3>
-  <form name="loginform" id="loginform" action="<?php echo site_url(); ?>/wp-login.php" method="post">
-  <table>
-    <tr>
-      <td><label for="user_login">Phone Number / Email Address</label></td>
-      <td>
-      <input type="text" name="log" autocomplete="username" class="input" value="" size="20">
-      </td>
-    </tr>
-    <tr>
-      <td><label for="user_pass">Password</label> </td>
-      <td>
-        <input type="password" name="pwd" autocomplete="current-password" class="input" value="" size="20">
-      </td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><label><input name="rememberme" type="checkbox" id="rememberme" value="forever" checked="checked"> Remember Me</label></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><input type="submit" name="wp-submit" id="wp-submit" class="button button-primary" value="Log In"></td>
-    </tr>
-  </table>
-  <input type="hidden" name="redirect_to" value="<?php echo get_permalink(); ?>">
-  </form>
+  <style type="text/css">
+    .matrimony-form{
+      width: 50%;
+      float: left;
+    }
+    .form-div{
+      padding: 50px;
+    }
+    @media(max-width:670px){
+      .matrimony-form{
+        width: 100%;
+      }
+      .form-div{
+        padding: 10px;
+      }
+    }
+    .registerbutton,.logforb .lighte {
+      padding: 20px !important;
+    }
+  </style>
+  <!-- <div class="matrimony-form">
+    <div class="form-div">
+      <h3>Login with Password</h3>
+      <form name="loginform" id="loginform" action="<?php echo site_url(); ?>/wp-login.php" method="post">
+      <table>
+        <tr>
+          <td><label for="user_login">Phone Number / Email Address</label></td>
+          <td>
+          <input type="text" name="log" autocomplete="username" class="input" value="" size="20">
+          </td>
+        </tr>
+        <tr>
+          <td><label for="user_pass">Password</label> </td>
+          <td>
+            <input type="password" name="pwd" autocomplete="current-password" class="input" value="" size="20">
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label><input name="rememberme" type="checkbox" id="rememberme" value="forever" checked="checked"> Remember Me</label></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="submit" name="wp-submit" id="wp-submit" class="button button-primary" value="Log In"></td>
+        </tr>
+      </table>
+      <input type="hidden" name="redirect_to" value="<?php echo get_permalink(); ?>">
+      </form>
+    </div>
+  </div> -->
+  <div class="matrimony-form">
+    <div class="form-div">
+      <h3>Login</h3>
+      <?php
+      echo do_shortcode('[df-form-login]');
+      ?>
+    </div>
+  </div>
+  <div class="matrimony-form">
+    <div class="form-div">
+      <h3>Register</h3>
+      <?php
+      echo do_shortcode('[df-form-signup]');
+      ?>
+    </div>
+  </div>
   <?php
-  echo '<h2>Register or Login with OTP:</h2>';
-  echo do_shortcode('[df-form]');
-  echo '<h2>Register or Login with Gmail:</h2>';
-  echo do_shortcode('[nextend_social_login redirect="'.get_permalink().'"]');
   return;
 }
 if (isset($_GET['search-by-id'])){
@@ -51,7 +87,7 @@ if (isset($_GET['search-by-id'])){
   return;
 }
 if (isset($_GET['id']) || isset($_GET['my-profile']) || isset($_GET['add-user'])) {
-  include 'dynamic_profile.php';
+  include 'my_profile.php';
   return;
 }
 $user_id = get_current_user_id();
@@ -64,6 +100,11 @@ if (isset($_GET['Gender'])) {
   } else {
     $this_one = 'Male';
   }
+}
+if (isset($_GET['Community'])) {
+  $this_comm = $_GET['Community'];
+} else {
+  $this_comm = 'All';
 }
 if (isset($_GET['number'])) {
   $number = $_GET['number'];
@@ -103,13 +144,41 @@ if (!$admin && !$agent) {
 $fields = get_posts($args);
 if (!$user_args) {
   $user_args = array(
-    'meta_key'     => 'gender',
-    'meta_value'   => $this_one,
+    'meta_query' => array(
+      'relation' => 'AND',
+      array(
+          'key'     => 'gender',
+          'value'   => $this_one
+      ),
+    ),
     'number'     => $number,
     'orderby' => 'rand',
     'role__not_in' => array('administrator','agent')
   );
+  if (isset($_GET['Community'])){
+    if ($this_comm!='All'){
+      $comm_id = get_term_by('name', $this_comm, 'community')->term_id;
+      $children = get_term_children($comm_id,'community');
+      array_push($user_args['meta_query'],array(
+        'relation' => 'OR',
+        array(
+          'key'     => 'community',
+          'value'   => $this_comm
+        )
+      ));
+      foreach($children as $child){
+        array_push($user_args['meta_query'][1],array(
+          'key'     => 'community',
+          'value'   => get_term_by('term_id', $child, 'community')->name
+        ));
+      }
+    }
+  }
+  // echo '<pre>';
+  // print_r($user_args);
+  // echo '</pre>';
   if (isset($_GET['agent'])) {
+    $user_args['meta_query'] = array();
     $user_args['meta_key'] = 'agent';
     $user_args['meta_value'] = get_current_user_id();
 
@@ -119,13 +188,31 @@ $blogusers = get_users( $user_args );
 if (!$filter_hide) {
   ?>
   <h1>All Profiles</h1>
-  <?php echo '<big><a href="'.wp_logout_url( $logout_redirect ).'"><b>Logout</b></a></big>'; ?>
+  <?php 
+  echo '<big><a href="'.wp_logout_url( get_permalink() ).'"><b>Logout</b></a></big>'; ?>
   <div>
     <form class="matriform">
       <b><big>Gender:</big></b>
       <select name="Gender" id="gender-filter">
         <option>Male</option>
         <option>Female</option>
+      </select>
+      <b><big>Community:</big></b>
+      <select name="Community" id="community-filter">
+        <option value="All">All</option>
+        <?php
+        $args = array(
+          'taxonomy'    => 'community',
+          'orderby'     => 'term_id',
+          'order'       => 'ASC',
+          // 'parent'      => 0,
+          'hide_empty'  => false,
+        );
+        $terms = get_terms($args);
+        foreach ($terms as $term) {
+          echo '<option>'.$term->name.'</option>';
+        }
+        ?>
       </select>
       <button>SUBMIT</button>
       <?php
@@ -140,11 +227,13 @@ if (!$filter_hide) {
       ?>
     </form>
   </div>
+  <br>
   <?php
 }
 ?>
 <script type="text/javascript">
   $('select[name=Gender]').val('<?php echo $this_one; ?>')
+  $('select[name=Community]').val('<?php echo $this_comm; ?>')
 </script>
 <div class="ui four doubling stackable cards">
   <?php
@@ -152,10 +241,9 @@ if (!$filter_hide) {
   foreach ($blogusers as $user) {
     $user_meta = get_user_meta($user->ID);
     $img_id = $user_meta[$profile_pic][0];
-    if(!$img_id){
+    $img_url = wp_get_attachment_image_src($img_id,'large')[0];
+    if(!$img_url){
       $img_url = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?s=300&d=mp';
-    } else {
-      $img_url = wp_get_attachment_image_src($img_id,'medium')[0];
     }
     ?>
     <div class="card">
@@ -189,6 +277,7 @@ if (!$filter_hide) {
   }
   ?>
 </div>
+<br>
 <?php
 if (!$blogusers) {
    echo '<h2 style="color:red; text-align:center">No '.$this_one.' users found!!!</h2>';

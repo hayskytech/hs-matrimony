@@ -170,12 +170,12 @@ if ($user_id ) {
 					    'taxonomy'    => 'community',
 					    'orderby'     => 'term_id',
 					    'order'       => 'ASC',
-					    'parent'      => 0,
+					    // 'parent'      => 0,
 					    'hide_empty'  => false,
 						);
 						$terms = get_terms($args);
 						foreach ($terms as $term) {
-							echo '<option value="'.$term->term_id.'">'.$term->name.'</option>';
+							echo '<option>'.$term->name.'</option>';
 						}
 						?>
 					</select>
@@ -225,7 +225,7 @@ if ($user_id ) {
 	<script type="text/javascript">
 		$('input[name=display_name]').val('<?php echo $data->display_name; ?>');
 		$('input[name=date_of_birth]').val('<?php echo $meta["date_of_birth"][0]; ?>');
-		$('input[name=community]').val('<?php echo $meta["community"][0]; ?>');
+		$('select[name=community]').val('<?php echo $meta["community"][0]; ?>');
 		<?php 
 		foreach ($posts as $post) {
 			$type = get_post_meta( $post->ID,'matrimony_field_type',true);

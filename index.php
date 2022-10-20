@@ -2,7 +2,7 @@
 /**
  * Plugin Name: HS Matrimony
  * Plugin URI: https://haysky.com/
- * Description: Matrimony plugin by Haysky. This plugin is originally made for BharatAlliance.com
+ * Description: Matrimony plugin by Haysky
  * Version: 1.0
  * Author: Haysky
  * Author URI: https://haysky.com/
@@ -13,6 +13,16 @@ error_reporting(E_ERROR | E_PARSE);
 // add_action('wp_head',function(){
 // wp_enqueue_style( 'semantic-css', 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.3/semantic.css', false, '2.3.3', 'all' );
 // });
+
+add_action( 'init', function() {
+    if($_GET["logout"]=='yes'){
+        wp_logout();
+        $url = site_url(); // replace with any URL
+        if ( wp_redirect( $url ) ) {
+            exit;
+        }
+    }
+});
 
 add_action( 'user_register', 'myplugin_registration_save', 10, 1 );
 function myplugin_registration_save( $user_id ) {
@@ -78,13 +88,7 @@ register_activation_hook( __FILE__, function() {
 
 include 'add_filter_to_wp_users.php';
 
-add_shortcode('display_profiles',function(){ include 'dynamic_profiles.php'; });
-
-function matrimony_admin_menu(){
-  add_submenu_page('edit.php?post_type=matrimony_field','Settings','Settings','manage_options','matrimony_settings','matrimony_settings');
-}
-add_action('admin_menu' , 'matrimony_admin_menu');
-function matrimony_settings(){ include 'settings.php'; }
+add_shortcode('display_profiles',function(){ include 'all_profiles.php'; });
 
 // For custom post type
 
