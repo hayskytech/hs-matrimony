@@ -61,18 +61,18 @@ if (!is_user_logged_in()) {
     <div class="form-div">
       <h3>Login</h3>
       <?php
-      echo do_shortcode('[df-form-login]');
+      echo do_shortcode('[idehweb_lwp]');
       ?>
     </div>
   </div>
-  <div class="matrimony-form">
+  <!-- <div class="matrimony-form">
     <div class="form-div">
       <h3>Register</h3>
       <?php
-      echo do_shortcode('[df-form-signup]');
+      // echo do_shortcode('[df-form-signup]');
       ?>
     </div>
-  </div>
+  </div> -->
   <?php
   return;
 }
@@ -80,9 +80,26 @@ if (isset($_GET['search-by-id'])){
   ?>
   <form class="matriform" style="padding:50px 0px">
     <b><big>View by ID:</big></b>
-    <br><input type="number" name="id" min="1">
-    <br><button>Submit</button>
+    <br>
+    <select class="ui search dropdown" name="id">
+      <option></option>
+      <?php
+      $search_args = array(
+        'number'     => -1,
+        'orderby' => 'rand',
+        'role__not_in' => array('administrator','agent')
+      );
+      $options = get_users( $search_args );
+      foreach ($options as $option) {
+        echo '<option value="'.$option->ID.'">'.$option->ID.' - '.$option->display_name.'</option>';
+      }
+      ?>
+    </select>
+    <button>Submit</button>
   </form>
+  <script type="text/javascript">
+    $('.ui.dropdown').dropdown();
+  </script>
   <?php
   return;
 }

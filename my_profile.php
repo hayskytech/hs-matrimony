@@ -248,7 +248,7 @@ if ($user_id ) {
 	</script>
 	<script type="text/javascript">
 		<?php
-		if (!$admin && !$agent && ($user_id!=get_current_user_id()) && !$add_user) {
+		if (!$admin && ($user_id!=get_current_user_id()) && !$add_user && get_usermeta( $user_id, $meta_key = 'agent' ) != get_current_user_id()) {
 			?>
 			$('.matrimony input').attr('readonly','');
 			$('.matrimony select').attr('disabled','disabled');
