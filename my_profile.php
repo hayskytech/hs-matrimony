@@ -128,17 +128,14 @@ if ($user_id ) {
 	$posts = get_posts( $args );
 	/*-- Save the details of current user --*/
 	if(isset($_POST["submit"])){
-		$data = array( 'ID' => $user_id);
-		$data["display_name"] = $_POST["display_name"];
+		update_user_meta($user_id, 'your_name', addslashes($_POST["your_name"]));
 		update_user_meta($user_id, 'date_of_birth', addslashes($_POST["date_of_birth"]));
 		update_user_meta($user_id, 'community', $_POST["community"]);
 		foreach ($posts as $post) {
 			// global $post;
 			update_user_meta($user_id, $post->post_name, addslashes($_POST[$post->post_name]));
 		}
-		$result = wp_update_user($data);
 	}
-	$data = get_userdata($user_id);
 	$meta = get_user_meta($user_id);
 	$logout_redirect = get_permalink();
 	if ($admin_edit_agent) {
@@ -147,14 +144,14 @@ if ($user_id ) {
 	if (!$admin_edit_agent) {
 		echo '<h3>View Profile</h3>';
 	}
-	$display_name = get_userdata( get_current_user_id() )->display_name;
+	$display_name = get_user_meta($user_id, 'your_name', true);
 	echo '<big><a href="'.wp_logout_url( $logout_redirect ).'"><b>Logout</b></a></big>';
 	?>
 	<form method="post" enctype="multipart/form-data" class="ui form matrimony">
 		<table class="ui collapsing unstackable striped table">
 			<tr>
 				<td>Name</td>
-				<td><input type="text" name="display_name"></td>
+				<td><input type="text" name="your_name"></td>
 			</tr>
 			<tr>
 				<td>Date Of Birth</td>
@@ -223,7 +220,7 @@ if ($user_id ) {
 	}
 	</script>
 	<script type="text/javascript">
-		$('input[name=display_name]').val('<?php echo $data->display_name; ?>');
+		$('input[name=your_name]').val('<?php echo $meta["your_name"][0]; ?>');
 		$('input[name=date_of_birth]').val('<?php echo $meta["date_of_birth"][0]; ?>');
 		$('select[name=community]').val('<?php echo $meta["community"][0]; ?>');
 		<?php 

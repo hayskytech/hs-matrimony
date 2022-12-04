@@ -8,6 +8,11 @@
  * Author URI: https://haysky.com/
  * License: GPLv2 or later
  */
+/**
+ * To Dos
+ * Edit profile page title change using JS
+ * Field type add time,date
+ * **/
 // $wpdb->show_errors(); $wpdb->print_error();
 error_reporting(E_ERROR | E_PARSE);
 // add_action('wp_head',function(){
@@ -110,7 +115,7 @@ add_action( "init",function(){
     "menu_icon"    => "dashicons-id-alt",  
     "supports"   => array( "title"),
     "capability_type" => "page",
-    "publicly_queryable"  => false,
+    "publicly_queryable"  => true,
   );
   register_post_type("matrimony_field", $args);
   

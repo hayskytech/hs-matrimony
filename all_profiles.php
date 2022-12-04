@@ -91,7 +91,8 @@ if (isset($_GET['search-by-id'])){
       );
       $options = get_users( $search_args );
       foreach ($options as $option) {
-        echo '<option value="'.$option->ID.'">'.$option->ID.' - '.$option->display_name.'</option>';
+        $your_name = get_user_meta($option->ID, 'your_name', true);
+        echo '<option value="'.$option->ID.'">'.$option->ID.' - '.$your_name.'</option>';
       }
       ?>
     </select>
@@ -269,7 +270,7 @@ if (!$filter_hide) {
       </a>
       <div class="content">
         <a class="header" style="text-decoration: none;" href="<?php echo get_permalink().'?id='.$user->ID; ?>">
-          <b class="user_id"><?php echo $user->display_name; ?></b>
+          <b class="user_id"><?php echo $user_meta['your_name'][0]; ?></b>
         </a>
         <div class="meta" style="color:black;">
           <?php 
